@@ -1,4 +1,9 @@
-token = '8433272420:AAGWjwGUyvvGIkPOhQWakw5fld21Pmd9FgQ' # токен
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+token = os.getenv('token')
 
 currencies = { # все имеющиеся валюты
     'рубль' : 'RUB',

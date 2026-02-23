@@ -1,26 +1,28 @@
 from extensions import *
-import telebot
-from config import token, currencies
+import asyncio
+from aiogram import Bot, Dispatcher, types
+from aiogram.filters import Command
+from config import token
 
-bot = telebot.TeleBot(token)
+bot = Bot(token=token)
+dp = Dispatcher()
 
-@bot.message_handler(commands=['start', 'help']) # подсказка
-def say_help(message: telebot.types.Message):
-    bot.send_message(message.chat.id, 'Чтобы начать работу, введите команду боту в следующем формате: '
+@dp.message(Command('start', 'help'))
+async def cmd_start_help(message: types.Message):
+    await message.answer('Чтобы начать работу, введите команду боту в следующем формате: '
                                       '\n<Название изначальной валюты> <Название валюты, в которую надо '
                                       'перевести> <Количество изначальной валюты>\nЧтобы увидеть '
                                       'доступные валюты, введите /values')
 
-@bot.message_handler(commands=['values'])
-def say_values(message: telebot.types.Message): # отображение всех валют
+@dp.message(Command('values'))
+async def handle_message(message: types.Message):
     text = ""
     for currency in currencies.keys():
         text += currency + '\n'
-    bot.send_message(message.chat.id, text)
+    await message.answer(text)
 
-
-@bot.message_handler(content_types=['text', ])
-def convert(message: telebot.types.Message): # конвертация валют
+@dp.message(lambda message: message.text and not message.text.startswith('/'))
+async def conver(message: types.Message):
     try:
         values = message.text.lower().split()
         # проверка правильности введенных данных
@@ -29,11 +31,16 @@ def convert(message: telebot.types.Message): # конвертация валют
         base, quote, amount = values
         total_base = CryptoConverter.get_price(base, quote, amount)
     except APIException as e:
-        bot.reply_to(message, f'Ошибка пользователя\n{e}')
+        await message.reply(f'Ошибка пользователя\n{e}')
     except Exception as e:
-        bot.reply_to(message, f'Не удалось обработать команду\n{e}')
+        await message.reply(f'Не удалось обработать команду\n{e}')
     else:
         # выводим конвертированную валюту
-        bot.reply_to(message, f'Цена {amount} {base} в {quote} = {total_base}')
+        await message.reply(f'Цена {amount} {base} в {quote} = {total_base}')
 
-bot.polling(none_stop=True)
+# Запуск бота
+async def main():
+    await dp.start_polling(bot)
+
+if __name__ == "__main__":
+    asyncio.run(main())
