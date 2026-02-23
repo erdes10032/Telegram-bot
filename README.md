@@ -41,6 +41,16 @@
 
 ```bash
 git clone https://github.com/erdes10032/telegram-bot.git
+cd telegram-bot
+```
+
+### 2. Создать виртуальное окружение
+
+```bash
+python -m venv venv
+source venv/bin/activate  # Linux
+# или
+venv\Scripts\activate  # Windows
 ```
 
 ### 2. Установить зависимости
